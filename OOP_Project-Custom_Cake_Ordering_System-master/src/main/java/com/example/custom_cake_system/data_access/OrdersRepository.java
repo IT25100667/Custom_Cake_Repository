@@ -1,7 +1,5 @@
 package com.example.custom_cake_system.data_access;
 
-import DTOs.CustomCakeOrderRequestDTO;
-import DTOs.CustomOrderInfoDTO;
 import DTOs.OrderDTO;
 
 import static com.example.jooq.Tables.TBL_CUSTOM_ORDER_INFO;
@@ -13,8 +11,6 @@ import com.example.jooq.tables.records.TblCustomOrderInfoRecord;
 
 import models.Response;
 import org.jooq.DSLContext;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -27,13 +23,9 @@ import java.util.stream.Collectors;
 @Repository
 public class OrdersRepository extends AbstractRepository {
 
-    @Autowired
-    UsersRepository usersRepository;
-
     public OrdersRepository(DSLContext context) {
         super(context);
     }
-
 
     public Response createOrders(List<OrderDTO> orders){
         try{
@@ -46,13 +38,10 @@ public class OrdersRepository extends AbstractRepository {
                 
                 if (order.getCustomOrderInfo() != null) {
                     try {
-                        order.getCustomOrderInfo().forEach(x->{
-                            TblCustomOrderInfoRecord customRecord = x.getRecord();
-                            _context.attach(customRecord);
-                            customRecord.setOrderId(orderRecord.getOrderId());
-                            customRecord.store();
-                        });
-
+                        TblCustomOrderInfoRecord customRecord = order.getCustomOrderInfo().getRecord();
+                        _context.attach(customRecord);
+                        customRecord.setOrderId(orderRecord.getOrderId());
+                        customRecord.store();
                     } catch (Exception ex) {
                         System.err.println("Warning: Could not save custom order details: " + ex.getMessage());
                         // We allow the order to proceed even if custom details fail, 
@@ -102,32 +91,5 @@ public class OrdersRepository extends AbstractRepository {
 
     public void updateOrderStatus(int orderId, String orderStatus) {
         _context.update(TBL_CAKE_ORDERS).set(TBL_CAKE_ORDERS.ORDER_STATUS, orderStatus).where(TBL_CAKE_ORDERS.ORDER_ID.eq(orderId)).execute();
-    }
-
-    public Response createCustomOrder(CustomCakeOrderRequestDTO request) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        UserDTO user = usersRepository.getUserDetails(username, false);
-
-        OrderDTO orderDTO = new OrderDTO();
-        List<CustomOrderInfoDTO> customOrderInfoDTOList = new ArrayList<>();
-        request.getModifiers().forEach((key, value)->{
-            CustomOrderInfoDTO customOrderInfoDTO = new CustomOrderInfoDTO();
-            customOrderInfoDTO.modifier_id = key;
-            customOrderInfoDTO.modifierValueId = (int) value;
-            customOrderInfoDTO.chosenText = request.getText();
-            customOrderInfoDTOList.add(customOrderInfoDTO);
-        });
-
-        orderDTO.setUserInfo(user);
-        orderDTO.setProductId(request.getCakeId());
-        orderDTO.setDateOfOrder(LocalDateTime.now());
-        orderDTO.setTotalPrice(request.getTotalPrice());
-        orderDTO.setOrderStatus("Pending");
-        orderDTO.setQuantity(1);
-        orderDTO.setCustomOrderInfo(customOrderInfoDTOList);
-
-        return createOrders(List.of(orderDTO));
-
     }
 }
