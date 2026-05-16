@@ -38,6 +38,10 @@ public class CustomOrderInfoDTO {
         }
     }
 
+    public CustomOrderInfoDTO() {
+
+    }
+
     public TblCustomOrderInfoRecord getRecord(){
         return getRecord(false);
     }

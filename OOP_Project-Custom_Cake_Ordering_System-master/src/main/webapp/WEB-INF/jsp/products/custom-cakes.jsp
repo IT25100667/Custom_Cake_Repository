@@ -159,7 +159,7 @@
 <%@ taglib prefix="t" tagdir="/WEB-INF/tags" %>
 <t:styles />
 <t:header />
-<body>
+<body id="app">
 
     <header class="page-header">
         <div class="container">
@@ -175,37 +175,36 @@
             <div class="builder-options">
                 
                 <h3 class="section-title" style="font-size: 2rem;">1. Choose Base Cake</h3>
-                <p class="section-subtitle">Select from our 4 signature preset bases.</p>
+                <p class="section-subtitle">Select from our signature preset bases.</p>
                 
-                <div class="preset-grid" id="preset-grid">
-                    <!-- Populated by JS -->
+                <div class="preset-grid" >
+                        <div class="preset-card" data-id="{{cake.id}}" :class="(cake.id==current.id)?'selected':''" id="preset-grid" v-for="cake in cakes" :key="cake.id" @click="changeCakes(cake)">
+                            <img :src="cake.image" :alt="cake.name" class="preset-img">
+                            <div class="preset-info">
+                                <h4>{{cake.name}}</h4>
+                                <p style="color: hsl(var(--clr-primary)); font-weight: 600;">Starting at $ {{cake.price}}</p>
+                            </div>
+                        </div>
+
                 </div>
 
                 <h3 class="section-title" style="font-size: 2rem;">2. Customize</h3>
                 <p class="section-subtitle">Make it uniquely yours.</p>
 
-                <div class="form-group">
-                    <label class="form-label" for="cake-size">Cake Size <span style="font-weight:normal; color:#666;">(Affects base price)</span></label>
-                    <select id="cake-size" class="form-control">
-                        <option value="1">1 kg (Serves 8-10) - Base Price</option>
-                        <option value="1.5">1.5 kg (Serves 15) - +50%</option>
-                        <option value="2">2 kg (Serves 20-25) - +100%</option>
-                    </select>
-                </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="cake-topping">Premium Toppings <span style="font-weight:normal; color:#666;">(+$5.00)</span></label>
-                    <select id="cake-topping" class="form-control">
-                        <option value="none">Standard Decor (Included)</option>
-                        <option value="fresh-berries">Fresh Mixed Berries</option>
-                        <option value="macarons">Assorted Macarons</option>
-                        <option value="gold-leaf">Edible Gold Leaf Highlights</option>
-                    </select>
-                </div>
+                    <div class="form-group" v-for="modifier in modifiers">
+                        <label class="form-label" :for="modifier.modifierId">{{modifier.modifierName}}</label>
+                        <select id="cake-size" class="form-control" v-model="currentModifiers[modifier.modifierId]" @change="recalculateTotal()">
+                                <option :value="modifierValueEl.modifierValueId" v-for="modifierValueEl in modifier.modifierList">
+                                    {{modifierValueEl.modifierValue}}
+                                </option>
+                        </select>
+                    </div>
+
 
                 <div class="form-group">
                     <label class="form-label" for="cake-message">Special Message (Optional)</label>
-                    <input type="text" id="cake-message" class="form-control" placeholder="e.g., Happy 30th Birthday Sarah!" maxlength="40">
+                    <input type="text" id="cake-message" v-model="text" class="form-control" placeholder="e.g., Happy 30th Birthday Sarah!" max="40">
                     <small style="color: #666; margin-top: 4px; display: block;">Max 40 characters.</small>
                 </div>
             </div>
@@ -217,28 +216,24 @@
                     
                     <div class="summary-row">
                         <span class="label">Base Cake:</span>
-                        <span id="summary-base-name">Select a cake</span>
+                        <span id="summary-base-name">{{current.name}}</span>
                     </div>
-                    <div class="summary-row">
-                        <span class="label">Size:</span>
-                        <span id="summary-size">1 kg</span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="label">Topping:</span>
-                        <span id="summary-topping">Standard</span>
+                    <div class="summary-row" v-for="modifier in modifiers">
+                        <span class="label">{{modifier.modifierName}}:</span>
+                        <span id="summary-size">{{ showModifierValues(modifier.modifierId) }}</span>
                     </div>
                     
                     <!-- Preview of chosen image -->
                     <div style="margin: 2rem 0; text-align: center;">
-                        <img id="summary-img" src="https://via.placeholder.com/300?text=Select+a+Cake" alt="Preview" style="border-radius: 12px; height: 180px; width: 100%; object-fit: cover; box-shadow: var(--shadow-sm);">
+                        <img id="summary-img" :src="current.image" alt="Preview" style="border-radius: 12px; height: 180px; width: 100%; object-fit: cover; box-shadow: var(--shadow-sm);">
                     </div>
                     
                     <div class="summary-row total">
                         <span class="label">Total Price:</span>
-                        <span id="summary-total">$0.00</span>
+                        <span id="summary-total">$ {{total}}</span>
                     </div>
 
-                    <button id="btn-place-order" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem; justify-content: center; font-size: 1.1rem; padding: 1rem;" disabled>
+                    <button id="btn-place-order" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem; justify-content: center; font-size: 1.1rem; padding: 1rem;" @click="placeOrder">
                         Place Order Now <i class="fa-solid fa-check-circle"></i>
                     </button>
                 </div>
@@ -262,7 +257,10 @@
         </div>
     </footer>
 
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="/js/search.js"></script>
     <script src="/js/custom-cake.js"></script>
+
 </body>
 </html>
