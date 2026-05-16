@@ -105,21 +105,39 @@ createApp({
                     return response.json();
                 })
                 .then(data => {
-                    console.log("Order placed successfully:", data);
-                    Swal.mixin({
-                        toast: true,
-                        position: "top-end",
-                        showConfirmButton: false,
-                        timer: 3000,
-                        timerProgressBar: true,
-                        didOpen: (toast) => {
-                            toast.onmouseenter = Swal.stopTimer;
-                            toast.onmouseleave = Swal.resumeTimer;
-                        }
-                    }).fire({
-                        icon: "success",
-                        title: "Order placed successfully !"
-                    });
+                    if(data.status){
+                        console.log("Order placed successfully:", data);
+                            Swal.mixin({
+                                toast: true,
+                                position: "top-end",
+                                showConfirmButton: false,
+                                timer: 3000,
+                                timerProgressBar: true,
+                                didOpen: (toast) => {
+                                    toast.onmouseenter = Swal.stopTimer;
+                                    toast.onmouseleave = Swal.resumeTimer;
+                                }
+                            }).fire({
+                                icon: "success",
+                                title: "Order placed successfully !"
+                            });
+                    }
+                    else{
+                            Swal.mixin({
+                                toast: true,
+                                position: "top-end",
+                                showConfirmButton: false,
+                                timer: 3000,
+                                timerProgressBar: true,
+                                didOpen: (toast) => {
+                                    toast.onmouseenter = Swal.stopTimer;
+                                    toast.onmouseleave = Swal.resumeTimer;
+                                }
+                            }).fire({
+                                icon: "error",
+                                title: data.message,
+                            });
+                    }
                 })
                 .catch(error => {
                     console.error("Error placing order:", error);
@@ -167,9 +185,9 @@ createApp({
         }
     },
 
-    mounted() {
-        this.fetchCustomCakes();
-        this.fetchCustomModifiers();
+    async mounted() {
+        await this.fetchCustomCakes();
+        await this.fetchCustomModifiers();
         this.recalculateTotal();
     },
 
