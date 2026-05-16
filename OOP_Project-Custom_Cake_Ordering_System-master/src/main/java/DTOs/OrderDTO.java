@@ -2,6 +2,7 @@ package DTOs;
 
 import com.example.jooq.tables.records.TblCakeOrdersRecord;
 import com.example.jooq.tables.records.TblCustomOrderInfoRecord;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.jooq.Record2;
 
 import java.time.LocalDateTime;
@@ -72,7 +73,26 @@ public class OrderDTO {
 
     }
 
+    public OrderDTO(TblCakeOrdersRecord tblCakeOrdersRecord, List<TblCustomOrderInfoRecord> customOrderInfoRecords) {
+        this.setOrderId(tblCakeOrdersRecord.getOrderId());
+        this.setCustomerId(tblCakeOrdersRecord.getCustomerId());
+        this.setProductId(tblCakeOrdersRecord.getProductId());
+        this.setQuantity(tblCakeOrdersRecord.getQuantity());
+        this.setDateOfOrder(tblCakeOrdersRecord.getDateOfOrder());
+        this.setOrderStatus(tblCakeOrdersRecord.getOrderStatus());
 
+        if (customOrderInfoRecords != null) {
+            ArrayList<CustomOrderInfoDTO> customOrderInfoDTOS = new ArrayList<>();
+            customOrderInfoRecords.forEach(r->{
+                customOrderInfoDTOS.add(new CustomOrderInfoDTO(r));
+            });
+            this.setCustomOrderInfo(customOrderInfoDTOS);
+        }
+        this.setTotalPrice(tblCakeOrdersRecord.getTotalPrice());
+
+    }
+
+    @JsonIgnore
     public TblCakeOrdersRecord getRecord(){
         return new TblCakeOrdersRecord(getOrderId(), getCustomerId(), getProductId(), getQuantity(), getDateOfOrder(), getOrderStatus(), getTotalPrice());
     }

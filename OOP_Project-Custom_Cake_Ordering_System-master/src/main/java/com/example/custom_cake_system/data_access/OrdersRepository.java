@@ -3,9 +3,14 @@ package com.example.custom_cake_system.data_access;
 import DTOs.CustomCakeOrderRequestDTO;
 import DTOs.CustomOrderInfoDTO;
 import DTOs.OrderDTO;
+
+import static com.example.jooq.Tables.TBL_CUSTOM_ORDER_INFO;
+import static com.example.jooq.tables.TblCakeOrders.TBL_CAKE_ORDERS;
+
 import DTOs.UserDTO;
 import com.example.jooq.tables.records.TblCakeOrdersRecord;
 import com.example.jooq.tables.records.TblCustomOrderInfoRecord;
+
 import models.Response;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,11 +19,10 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-
-import static com.example.jooq.Tables.TBL_CUSTOM_ORDER_INFO;
-import static com.example.jooq.tables.TblCakeOrders.TBL_CAKE_ORDERS;
 
 @Repository
 public class OrdersRepository extends AbstractRepository {
@@ -29,7 +33,6 @@ public class OrdersRepository extends AbstractRepository {
     public OrdersRepository(DSLContext context) {
         super(context);
     }
-
 
     public Response createOrders(List<OrderDTO> orders){
         try{
@@ -48,7 +51,6 @@ public class OrdersRepository extends AbstractRepository {
                             customRecord.setOrderId(orderRecord.getOrderId());
                             customRecord.store();
                         });
-
                     } catch (Exception ex) {
                         System.err.println("Warning: Could not save custom order details: " + ex.getMessage());
                         // We allow the order to proceed even if custom details fail, 
@@ -69,7 +71,19 @@ public class OrdersRepository extends AbstractRepository {
         return _context.select(TBL_CAKE_ORDERS, TBL_CUSTOM_ORDER_INFO)
                 .from(TBL_CAKE_ORDERS)
                 .leftJoin(TBL_CUSTOM_ORDER_INFO).on(TBL_CUSTOM_ORDER_INFO.ORDER_ID.eq(TBL_CAKE_ORDERS.ORDER_ID))
-                .stream().map(OrderDTO::new).collect(Collectors.toList());
+                .fetchGroups(
+                        r -> r.into(TBL_CAKE_ORDERS), // allows for the one-to-many relationship to be maintained
+                        r -> r.into(TBL_CUSTOM_ORDER_INFO)
+                        //basically converts each record into OrderDTO with List<CustomOrderInfoDTO>
+                        //without it the same order would duplicate based on how many modifiers were chosen
+                )
+                .entrySet()
+                .stream()
+                .filter(r->r.getKey()!=null) //filter out null rows
+                .map(e->new OrderDTO(
+                        e.getKey(),
+                        e.getValue()
+                )).collect(Collectors.toList());
     }
 
     public List<OrderDTO> getOrdersWithoutCustomOrderDetails() {
