@@ -71,7 +71,19 @@ public class OrdersRepository extends AbstractRepository {
         return _context.select(TBL_CAKE_ORDERS, TBL_CUSTOM_ORDER_INFO)
                 .from(TBL_CAKE_ORDERS)
                 .leftJoin(TBL_CUSTOM_ORDER_INFO).on(TBL_CUSTOM_ORDER_INFO.ORDER_ID.eq(TBL_CAKE_ORDERS.ORDER_ID))
-                .stream().map(OrderDTO::new).collect(Collectors.toList());
+                .fetchGroups(
+                        r -> r.into(TBL_CAKE_ORDERS), // allows for the one-to-many relationship to be maintained
+                        r -> r.into(TBL_CUSTOM_ORDER_INFO)
+                        //basically converts each record into OrderDTO with List<CustomOrderInfoDTO>
+                        //without it the same order would duplicate based on how many modifiers were chosen
+                )
+                .entrySet()
+                .stream()
+                .filter(r->r.getKey()!=null) //filter out null rows
+                .map(e->new OrderDTO(
+                        e.getKey(),
+                        e.getValue()
+                )).collect(Collectors.toList());
     }
 
     public List<OrderDTO> getOrdersWithoutCustomOrderDetails() {
