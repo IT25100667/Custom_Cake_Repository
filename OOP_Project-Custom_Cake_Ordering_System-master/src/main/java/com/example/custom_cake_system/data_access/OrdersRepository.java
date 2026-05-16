@@ -68,22 +68,12 @@ public class OrdersRepository extends AbstractRepository {
     }
 
     public List<OrderDTO> getOrders() {
-        return _context.select(TBL_CAKE_ORDERS, TBL_CUSTOM_ORDER_INFO)
-                .from(TBL_CAKE_ORDERS)
-                .leftJoin(TBL_CUSTOM_ORDER_INFO).on(TBL_CUSTOM_ORDER_INFO.ORDER_ID.eq(TBL_CAKE_ORDERS.ORDER_ID))
-                .fetchGroups(
-                        r -> r.into(TBL_CAKE_ORDERS), // allows for the one-to-many relationship to be maintained
-                        r -> r.into(TBL_CUSTOM_ORDER_INFO)
-                        //basically converts each record into OrderDTO with List<CustomOrderInfoDTO>
-                        //without it the same order would duplicate based on how many modifiers were chosen
-                )
-                .entrySet()
-                .stream()
-                .filter(r->r.getKey()!=null) //filter out null rows
-                .map(e->new OrderDTO(
-                        e.getKey(),
-                        e.getValue()
-                )).collect(Collectors.toList());
+        List<OrderDTO> dtos =  _context.selectFrom(TBL_CAKE_ORDERS).fetch().stream().map(OrderDTO::new).toList();
+        for(OrderDTO x: dtos){
+            x.setCustomOrderInfo(_context.selectFrom(TBL_CUSTOM_ORDER_INFO).fetch().stream().map(CustomOrderInfoDTO::new).toList());
+        }
+
+        return dtos;
     }
 
     public List<OrderDTO> getOrdersWithoutCustomOrderDetails() {
@@ -92,12 +82,12 @@ public class OrdersRepository extends AbstractRepository {
     }
 
     public List<OrderDTO> getOrders(int userID) {
-        return _context.select(TBL_CAKE_ORDERS, TBL_CUSTOM_ORDER_INFO)
-                .from(TBL_CAKE_ORDERS)
-                .leftJoin(TBL_CUSTOM_ORDER_INFO).on(TBL_CUSTOM_ORDER_INFO.ORDER_ID.eq(TBL_CAKE_ORDERS.ORDER_ID))
-                .where(TBL_CAKE_ORDERS.CUSTOMER_ID.eq(userID))
+        List<OrderDTO> dtos =  _context.selectFrom(TBL_CAKE_ORDERS).where(TBL_CAKE_ORDERS.CUSTOMER_ID.eq(userID)).fetch().stream().map(OrderDTO::new).toList();
+        for(OrderDTO x: dtos){
+            x.setCustomOrderInfo(_context.selectFrom(TBL_CUSTOM_ORDER_INFO).where(TBL_CUSTOM_ORDER_INFO.ORDER_ID.eq(x.getOrderId())).fetch().stream().map(CustomOrderInfoDTO::new).toList());
+        }
 
-                .stream().map(OrderDTO::new).collect(Collectors.toList());
+        return dtos;
     }
 
     public Response deleteOrder(int order_id) {
