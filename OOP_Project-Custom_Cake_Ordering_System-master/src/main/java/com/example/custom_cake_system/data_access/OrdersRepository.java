@@ -3,9 +3,14 @@ package com.example.custom_cake_system.data_access;
 import DTOs.CustomCakeOrderRequestDTO;
 import DTOs.CustomOrderInfoDTO;
 import DTOs.OrderDTO;
+
+import static com.example.jooq.Tables.TBL_CUSTOM_ORDER_INFO;
+import static com.example.jooq.tables.TblCakeOrders.TBL_CAKE_ORDERS;
+
 import DTOs.UserDTO;
 import com.example.jooq.tables.records.TblCakeOrdersRecord;
 import com.example.jooq.tables.records.TblCustomOrderInfoRecord;
+
 import models.Response;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,11 +19,10 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-
-import static com.example.jooq.Tables.TBL_CUSTOM_ORDER_INFO;
-import static com.example.jooq.tables.TblCakeOrders.TBL_CAKE_ORDERS;
 
 @Repository
 public class OrdersRepository extends AbstractRepository {
@@ -29,7 +33,6 @@ public class OrdersRepository extends AbstractRepository {
     public OrdersRepository(DSLContext context) {
         super(context);
     }
-
 
     public Response createOrders(List<OrderDTO> orders){
         try{
@@ -48,7 +51,6 @@ public class OrdersRepository extends AbstractRepository {
                             customRecord.setOrderId(orderRecord.getOrderId());
                             customRecord.store();
                         });
-
                     } catch (Exception ex) {
                         System.err.println("Warning: Could not save custom order details: " + ex.getMessage());
                         // We allow the order to proceed even if custom details fail, 
@@ -66,10 +68,12 @@ public class OrdersRepository extends AbstractRepository {
     }
 
     public List<OrderDTO> getOrders() {
-        return _context.select(TBL_CAKE_ORDERS, TBL_CUSTOM_ORDER_INFO)
-                .from(TBL_CAKE_ORDERS)
-                .leftJoin(TBL_CUSTOM_ORDER_INFO).on(TBL_CUSTOM_ORDER_INFO.ORDER_ID.eq(TBL_CAKE_ORDERS.ORDER_ID))
-                .stream().map(OrderDTO::new).collect(Collectors.toList());
+        List<OrderDTO> dtos =  _context.selectFrom(TBL_CAKE_ORDERS).fetch().stream().map(OrderDTO::new).toList();
+        for(OrderDTO x: dtos){
+            x.setCustomOrderInfo(_context.selectFrom(TBL_CUSTOM_ORDER_INFO).fetch().stream().map(CustomOrderInfoDTO::new).toList());
+        }
+
+        return dtos;
     }
 
     public List<OrderDTO> getOrdersWithoutCustomOrderDetails() {
@@ -78,12 +82,12 @@ public class OrdersRepository extends AbstractRepository {
     }
 
     public List<OrderDTO> getOrders(int userID) {
-        return _context.select(TBL_CAKE_ORDERS, TBL_CUSTOM_ORDER_INFO)
-                .from(TBL_CAKE_ORDERS)
-                .leftJoin(TBL_CUSTOM_ORDER_INFO).on(TBL_CUSTOM_ORDER_INFO.ORDER_ID.eq(TBL_CAKE_ORDERS.ORDER_ID))
-                .where(TBL_CAKE_ORDERS.CUSTOMER_ID.eq(userID))
+        List<OrderDTO> dtos =  _context.selectFrom(TBL_CAKE_ORDERS).where(TBL_CAKE_ORDERS.CUSTOMER_ID.eq(userID)).fetch().stream().map(OrderDTO::new).toList();
+        for(OrderDTO x: dtos){
+            x.setCustomOrderInfo(_context.selectFrom(TBL_CUSTOM_ORDER_INFO).where(TBL_CUSTOM_ORDER_INFO.ORDER_ID.eq(x.getOrderId())).fetch().stream().map(CustomOrderInfoDTO::new).toList());
+        }
 
-                .stream().map(OrderDTO::new).collect(Collectors.toList());
+        return dtos;
     }
 
     public Response deleteOrder(int order_id) {
