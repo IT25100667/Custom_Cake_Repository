@@ -2,6 +2,7 @@ package DTOs;
 
 import com.example.jooq.tables.records.TblCakeOrdersRecord;
 import com.example.jooq.tables.records.TblCustomOrderInfoRecord;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.jooq.Record2;
 
 import java.time.LocalDateTime;
@@ -72,7 +73,7 @@ public class OrderDTO {
 
     }
 
-
+    @JsonIgnore
     public TblCakeOrdersRecord getRecord(){
         return new TblCakeOrdersRecord(getOrderId(), getCustomerId(), getProductId(), getQuantity(), getDateOfOrder(), getOrderStatus(), getTotalPrice());
     }
