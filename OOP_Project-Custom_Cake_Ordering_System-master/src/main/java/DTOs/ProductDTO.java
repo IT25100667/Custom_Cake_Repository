@@ -1,6 +1,7 @@
 package DTOs;
 
 import com.example.jooq.tables.records.TblProductsRecord;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.jooq.types.UInteger;
 
 import java.util.Collection;
@@ -60,10 +61,13 @@ public class ProductDTO {
         this.customCake = x.getCustomCake();
     }
 
+
+    @JsonIgnore
     public TblProductsRecord getRecord() {
         return getRecord(false);
     }
 
+    @JsonIgnore
     public TblProductsRecord getRecord(boolean includeID) {
         TblProductsRecord productsRecord =  new TblProductsRecord();
         if(includeID){
@@ -158,4 +162,6 @@ public class ProductDTO {
     public void setCustomCake(boolean customCake) {
         this.customCake = customCake;
     }
+
+
 }
