@@ -43,7 +43,7 @@ async function renderCart() {
                     <div class="cart-item-actions">
                         <div class="qty-control">
                             <div class="qty-btn" onclick="updateQty(${item.id}, ${item.quantity - 1})"><i class="fa-solid fa-minus"></i></div>
-                            <input type="text" class="qty-val" value="${item.quantity}" readonly>
+                            <input type="text" class="qty-val" value="${item.quantity}" readonly min="0" max="${item.stockQuantity}">
                             <div class="qty-btn" onclick="updateQty(${item.id}, ${item.quantity + 1})"><i class="fa-solid fa-plus"></i></div>
                         </div>
                         <a href="javascript:void(0)" class="btn-remove" onclick="removeItem(${item.id})" title="Remove Item">
@@ -74,6 +74,22 @@ async function renderCart() {
                     const result = await res.json();
                     if (result.status) {
                         window.location.href = '/checkout';
+                    }
+                    else{
+                        Swal.mixin({
+                            toast: true,
+                            position: "top-end",
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true,
+                            didOpen: (toast) => {
+                                toast.onmouseenter = Swal.stopTimer;
+                                toast.onmouseleave = Swal.resumeTimer;
+                            }
+                        }).fire({
+                            icon: "error",
+                            title: result.message,
+                        });
                     }
                 } catch (e) {
                     console.error("Checkout initialization failed", e);
