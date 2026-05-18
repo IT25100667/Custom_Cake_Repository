@@ -57,4 +57,8 @@ public class CartService {
             cartRepository.clearCart(userId);
         }
     }
+
+    public Response checkIfCartItemsAreValid(int userId){
+        return cartRepository.checkIfCartItemsAreValid(userId);
+    }
 }
