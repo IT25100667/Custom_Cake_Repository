@@ -32,11 +32,6 @@ public class OrderService {
                 order.setOrderStatus("Pending");
                 order.setTotalPrice((long)item.getProductPrice() * item.getQuantity());
                 
-                // Carry over custom details if they exist
-                if (item.getCustomDetails() != null) {
-                    order.setCustomOrderInfo(item.getCustomDetails());
-                }
-                
                 orders.add(order);
             });
 

@@ -1,5 +1,7 @@
 package DTOs;
 
+import com.example.jooq.tables.records.TblShoppingCartItemsRecord;
+
 import java.util.List;
 
 /**
@@ -15,6 +17,7 @@ public class CartItemDTO {
     // Joined fields for display
     private String productName;
     private String productImage;
+    private int stockQuantity;
     private long productPrice;
     private String categoryName;
     private List<CustomOrderInfoDTO> customDetails;
@@ -26,6 +29,13 @@ public class CartItemDTO {
         this.userId = userId;
         this.productId = productId;
         this.quantity = quantity;
+    }
+
+    public CartItemDTO(TblShoppingCartItemsRecord shoppingCartItemsRecord) {
+        this.id = shoppingCartItemsRecord.getId();
+        this.productId = shoppingCartItemsRecord.getProductId();
+        this.quantity = shoppingCartItemsRecord.getQuantityOrdered();
+        this.userId = shoppingCartItemsRecord.getUserId();
     }
 
     public int getId() {
@@ -98,5 +108,13 @@ public class CartItemDTO {
 
     public void setCustomDetails(List<CustomOrderInfoDTO> customDetails) {
         this.customDetails = customDetails;
+    }
+
+    public int getStockQuantity() {
+        return stockQuantity;
+    }
+
+    public void setStockQuantity(int stockQuantity) {
+        this.stockQuantity = stockQuantity;
     }
 }

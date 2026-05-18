@@ -8,9 +8,11 @@ import com.example.custom_cake_system.services.CheckoutService;
 import com.example.custom_cake_system.services.OrderService;
 import com.example.custom_cake_system.services.UserService;
 import com.example.custom_cake_system.services.CartService;
+import com.example.custom_cake_system.utlity.AuthenticationHandler;
 import jakarta.servlet.http.HttpSession;
 import models.CheckoutState;
 import models.Response;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -25,18 +27,24 @@ public class CheckoutController {
     private final OrderService orderService;
     private final UserService userService;
     private final CartService cartService;
+    private final AuthenticationHandler authenticationHandler;
 
-    public CheckoutController(CheckoutService checkoutService, OrderService orderService, UserService userService, CartService cartService) {
+    public CheckoutController(CheckoutService checkoutService, OrderService orderService, UserService userService, CartService cartService, AuthenticationHandler authenticationHandler) {
         this.checkoutService = checkoutService;
         this.orderService = orderService;
         this.userService = userService;
         this.cartService = cartService;
+        this.authenticationHandler = authenticationHandler;
     }
 
     @PostMapping("/init")
     @ResponseBody
     public Response initCheckout(@RequestBody List<CartItemDTO> items, HttpSession session) {
         CheckoutState state = new CheckoutState();
+        Response response = cartService.checkIfCartItemsAreValid(authenticationHandler.getCurrentUserId());
+        if(!response.status){
+            return response;
+        }
         checkoutService.initializeCheckout(state, items);
         session.setAttribute("checkoutState", state);
         return new Response(true, "Checkout initialized");
