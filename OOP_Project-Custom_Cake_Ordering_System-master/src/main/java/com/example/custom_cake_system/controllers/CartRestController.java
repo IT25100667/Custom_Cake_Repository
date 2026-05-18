@@ -41,4 +41,10 @@ public class CartRestController {
     public Response removeFromCart(@PathVariable("itemId") int itemId) {
         return cartService.removeFromCart(itemId);
     }
+
+    @DeleteMapping("/clear")
+    public Response clearCart() {
+        cartService.clearCart();
+        return new Response(true, "Cart cleared successfully");
+    }
 }
