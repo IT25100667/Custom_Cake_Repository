@@ -43,7 +43,7 @@ public class OrdersRepository extends AbstractRepository {
             int firstOrderId = -1;
 
             for(OrderDTO order: orders) {
-                ProductDTO product = productsRepository.getProductById(order.getOrderId());
+                ProductDTO product = productsRepository.getProductById(order.getProductId());
                 if (product.getQuantity() < order.getQuantity()) {
                     return new Response(false, "Quantity ordered of product "+ product.getName() +"exceeds quantity of product available in stock");
                 }
