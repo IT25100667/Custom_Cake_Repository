@@ -1,20 +1,18 @@
 package com.example.custom_cake_system.data_access;
 
-import DTOs.CustomCakeOrderRequestDTO;
-import DTOs.CustomOrderInfoDTO;
-import DTOs.OrderDTO;
+import DTOs.*;
 
 import static com.example.jooq.Tables.TBL_CUSTOM_ORDER_INFO;
+import static com.example.jooq.Tables.TBL_PRODUCTS;
 import static com.example.jooq.tables.TblCakeOrders.TBL_CAKE_ORDERS;
 
-import DTOs.UserDTO;
+import com.example.custom_cake_system.utlity.AuthenticationHandler;
 import com.example.jooq.tables.records.TblCakeOrdersRecord;
 import com.example.jooq.tables.records.TblCustomOrderInfoRecord;
 
 import models.Response;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -30,13 +28,27 @@ public class OrdersRepository extends AbstractRepository {
     @Autowired
     UsersRepository usersRepository;
 
-    public OrdersRepository(DSLContext context) {
+    @Autowired
+    ProductsRepository productsRepository;
+
+    AuthenticationHandler authenticationHandler;
+
+    public OrdersRepository(DSLContext context, AuthenticationHandler authenticationHandler) {
         super(context);
+        this.authenticationHandler = authenticationHandler;
     }
 
     public Response createOrders(List<OrderDTO> orders){
         try{
             int firstOrderId = -1;
+
+            for(OrderDTO order: orders) {
+                ProductDTO product = productsRepository.getProductById(order.getProductId());
+                if (product.getQuantity() < order.getQuantity()) {
+                    return new Response(false, "Quantity ordered of product "+ product.getName() +"exceeds quantity of product available in stock");
+                }
+            }
+
             for(OrderDTO order: orders){
                 TblCakeOrdersRecord orderRecord = order.getRecord();
                 _context.attach(orderRecord);
@@ -105,7 +117,7 @@ public class OrdersRepository extends AbstractRepository {
     }
 
     public Response createCustomOrder(CustomCakeOrderRequestDTO request) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String username = authenticationHandler.getCurrentUsername();
 
         UserDTO user = usersRepository.getUserDetails(username, false);
 
