@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@RequestMapping("/user")
+@RequestMapping("/user") //https:localhost:8081/user/login
 @Controller
 public class UserController {
 
