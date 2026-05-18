@@ -7,6 +7,7 @@ import DTOs.UserDTO;
 import com.example.custom_cake_system.services.CheckoutService;
 import com.example.custom_cake_system.services.OrderService;
 import com.example.custom_cake_system.services.UserService;
+import com.example.custom_cake_system.services.CartService;
 import jakarta.servlet.http.HttpSession;
 import models.CheckoutState;
 import models.Response;
@@ -23,11 +24,13 @@ public class CheckoutController {
     private final CheckoutService checkoutService;
     private final OrderService orderService;
     private final UserService userService;
+    private final CartService cartService;
 
-    public CheckoutController(CheckoutService checkoutService, OrderService orderService, UserService userService) {
+    public CheckoutController(CheckoutService checkoutService, OrderService orderService, UserService userService, CartService cartService) {
         this.checkoutService = checkoutService;
         this.orderService = orderService;
         this.userService = userService;
+        this.cartService = cartService;
     }
 
     @PostMapping("/init")
@@ -108,6 +111,7 @@ public class CheckoutController {
         Response response = orderService.placeOrder(state, customerId);
         
         if (response.status) {
+            cartService.clearCart();
             session.removeAttribute("checkoutState");
             return "redirect:/order-confirmation?orderId=ORD-" + response.message;
         } else {
