@@ -182,7 +182,7 @@
                             <img :src="cake.image" :alt="cake.name" class="preset-img">
                             <div class="preset-info">
                                 <h4>{{cake.name}}</h4>
-                                <p style="color: hsl(var(--clr-primary)); font-weight: 600;">Starting at $ {{cake.price}}</p>
+                                <p style="color: hsl(var(--clr-primary)); font-weight: 600;">Starting at LKR {{cake.price}}</p>
                             </div>
                         </div>
 
@@ -230,7 +230,7 @@
                     
                     <div class="summary-row total">
                         <span class="label">Total Price:</span>
-                        <span id="summary-total">$ {{total}}</span>
+                        <span id="summary-total">LKR {{total}}</span>
                     </div>
 
                     <button id="btn-place-order" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem; justify-content: center; font-size: 1.1rem; padding: 1rem;" @click="placeOrder">

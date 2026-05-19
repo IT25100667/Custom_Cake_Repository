@@ -146,7 +146,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label" for="price">Price (LKR)</label>
+                        <label class="form-label" for="price">Price ($)</label>
                         <input type="number" id="price" name="price" class="form-input" placeholder="0.00" min="0" step="0.01" required>
                     </div>
 
